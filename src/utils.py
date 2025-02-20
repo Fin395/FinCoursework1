@@ -11,7 +11,7 @@ from config import DATA_DIR
 
 
 def get_transactions_from_excel(path_to_excel_file: str) -> list[dict[Any, Any]]:
-    """Получаем список транзакций из excel-файла"""
+    """ Получаем список транзакций из excel-файла """
     try:
         transactions_reader = pd.read_excel(path_to_excel_file)
         transactions_reader_as_dict = transactions_reader.to_dict(orient="records")
@@ -22,7 +22,7 @@ def get_transactions_from_excel(path_to_excel_file: str) -> list[dict[Any, Any]]
 
 
 def get_greetings() -> str:
-    """Определяем время суток для приветствия"""
+    """ Определяем приветствие по времени суток """
     current_date_and_time = datetime.datetime.now()
     current_hour = current_date_and_time.hour
     if 0 <= current_hour < 6:
@@ -35,8 +35,8 @@ def get_greetings() -> str:
         return "Добрый вечер"
 
 
-def filter_transactions_by_period(transactions: list[dict], date: str) -> Any:
-    """Выбираем транзакции с начала месяца, на который выпадает входящая дата, по входящую дату"""
+def filter_transactions_by_period(transactions: list[dict], date: str) -> pd.DataFrame:
+    """ Выбираем транзакции с начала месяца, на который выпадает входящая дата, по входящую дату """
     end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     start_of_period = end_of_period.replace(day=1, hour=0, minute=0, second=0)
     df = pd.DataFrame(transactions)
@@ -46,19 +46,50 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> Any:
     return filtered_transactions
 
 
-def get_cards(transactions: Any) -> Any:
-    """Группирует данные транзакций по номерам карт"""
+def get_cards(transactions: pd.DataFrame) -> list[dict]:
+    """ Группирует данные транзакций по номерам карт """
     transactions_grouped_by_card = transactions.groupby("Номер карты", as_index=False).agg(
         {"Сумма платежа": "sum", "Кэшбэк": "sum"}
     )
+#    РАССЧИТАТЬ КЕШБЕК!!!
+#    !!! И ТОЛЬКО РАСХОДЫ
     return transactions_grouped_by_card.to_dict(orient="records")
 
 
-def get_top_transactions(list_of_transactions: Any) -> Any:
-    """Выбираем топ-5 транзакций по сумме платежа"""
+def get_top_transactions(list_of_transactions: pd.DataFrame) -> list[dict]:
+    """ Выбираем топ-5 транзакций по сумме платежа """
     transactions_sorted_by_amount = list_of_transactions.sort_values("Сумма платежа")
     top_transactions = transactions_sorted_by_amount[
         ["Дата операции", "Сумма платежа", "Категория", "Описание"]
     ].head()
     top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     return top_transactions.to_dict(orient="records")
+
+
+#def get_currency_rate(transactions) -> Any:
+#    """Функцию принимает на вход транзакцию и конвертирует сумму транзакции в рубли"""
+#
+# Обработать рубль
+#
+#    transactions_grouped_by_currency = transactions.groupby("Валюта операции", as_index=False)
+#
+#
+#print(get_currency_rate(filter_transactions_by_period(get_transactions_from_excel(DATA_DIR), "2021-09-30 23:59:59")))
+#
+#
+#    if transaction_info["operationAmount"]["currency"]["code"] == "RUB":
+#        return transaction_info["operationAmount"]["amount"]
+#    else:
+#        url = "https://api.apilayer.com/exchangerates_data/convert"
+#        payload = {
+#            "amount": transaction_info["operationAmount"]["amount"],
+#            "from": transaction_info["operationAmount"]["currency"]["code"],
+#            "to": "RUB",
+#        }
+#        headers = {"apikey": API_KEY}
+#        response = requests.get(url, headers=headers, params=payload)
+#        if response.status_code == 200:
+#            transaction_amount = response.json()
+#           return float(transaction_amount["result"])
+#        else:
+#            print(f"Запрос не был успешным. Возможная причина: {response.reason}")
