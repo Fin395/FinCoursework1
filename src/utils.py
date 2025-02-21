@@ -5,6 +5,7 @@ import os
 import re
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from config import DATA_DIR
@@ -13,9 +14,9 @@ from config import DATA_DIR
 def get_transactions_from_excel(path_to_excel_file: str) -> list[dict[Any, Any]]:
     """ Получаем список транзакций из excel-файла """
     try:
-        transactions_reader = pd.read_excel(path_to_excel_file)
-        transactions_reader_as_dict = transactions_reader.to_dict(orient="records")
-        return transactions_reader_as_dict
+        df = pd.read_excel(path_to_excel_file, na_filter=True)
+        df_as_dict = df.to_dict(orient="records")
+        return df_as_dict
     except Exception:
         print("Ошибка, не удалось получить данные")
     return []
@@ -45,24 +46,33 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> pd.Dat
 
     return filtered_transactions
 
+#print(filter_transactions_by_period(get_transactions_from_excel(DATA_DIR), "2021-09-26 23:59:59"))
+
 
 def get_cards(transactions: pd.DataFrame) -> list[dict]:
     """ Группирует данные транзакций по номерам карт """
-    transactions_grouped_by_card = transactions.groupby("Номер карты", as_index=False).agg(
-        {"Сумма платежа": "sum", "Кэшбэк": "sum"}
+    transactions_filtered = transactions.loc[(transactions["Сумма операции"] < 0) & (transactions["Статус"] == "OK")]
+    transactions_filtered.loc[transactions_filtered["Кэшбэк"].isna(), "Кэшбэк"] = 0
+    for index, row in transactions_filtered.iterrows():
+        if row["Кэшбэк"] == 0:
+            transactions_filtered.at[index, "Кэшбэк"] = transactions_filtered.at[index, "Сумма операции с округлением"] // 100
+    transactions_grouped_by_card = transactions_filtered.groupby("Номер карты", as_index=False).agg(
+        {"Сумма операции": "sum", "Кэшбэк": "sum"}
     )
-#    РАССЧИТАТЬ КЕШБЕК!!!
-#    !!! И ТОЛЬКО РАСХОДЫ
+    transactions_grouped_by_card.rename(columns={"Номер карты": "last_digits", "Сумма операции": "total_spent", "Кэшбэк": "cashback"}, inplace=True)
     return transactions_grouped_by_card.to_dict(orient="records")
+
+#print(get_cards(filter_transactions_by_period(get_transactions_from_excel(DATA_DIR), "2021-06-02 23:59:59")))
 
 
 def get_top_transactions(list_of_transactions: pd.DataFrame) -> list[dict]:
     """ Выбираем топ-5 транзакций по сумме платежа """
-    transactions_sorted_by_amount = list_of_transactions.sort_values("Сумма платежа")
+    transactions_sorted_by_amount = list_of_transactions.sort_values("Сумма операции")
     top_transactions = transactions_sorted_by_amount[
-        ["Дата операции", "Сумма платежа", "Категория", "Описание"]
+        ["Дата операции", "Сумма операции", "Категория", "Описание"]
     ].head()
     top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
+    top_transactions.rename(columns={"Дата операции": "date", "Сумма операции": "amount", "Категория": "category", "Описание": "description"}, inplace=True)
     return top_transactions.to_dict(orient="records")
 
 

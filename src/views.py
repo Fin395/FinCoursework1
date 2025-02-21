@@ -21,4 +21,4 @@ def get_main_page(date):
 
     return json_data
 
-print(get_main_page("2021-09-30 23:59:59"))
+print(get_main_page("2018-09-30 23:59:59"))
