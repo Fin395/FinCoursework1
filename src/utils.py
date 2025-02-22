@@ -4,7 +4,6 @@ import logging
 import os
 import re
 from typing import Any
-
 import currencyapicom
 import numpy as np
 import pandas as pd
@@ -14,8 +13,8 @@ from dotenv import load_dotenv
 from config import DATA_DIR, JSON_DIR
 
 load_dotenv()
-API_KEY = os.getenv("API_KEY")
-
+API_KEY_CURRENCY = os.getenv("API_KEY_CURRENCY")
+API_KEY_STOCK = os.getenv("API_KEY_STOCK")
 
 def get_transactions_from_excel(path_to_excel_file: str) -> list[dict[Any, Any]]:
     """Получаем список транзакций из excel-файла"""
@@ -97,9 +96,9 @@ def get_currencies(path_to_json_file: str) -> Any:
     return currencies
 
 
-def get_stocks() -> Any:
+def get_stocks(path_to_json_file) -> Any:
     """Получаем список наименований акций из JSON-файла"""
-    with open(JSON_DIR) as f:
+    with open(path_to_json_file) as f:
         currencies_and_stocks = json.load(f)
     stocks = currencies_and_stocks["user_stocks"]
     return stocks
@@ -114,7 +113,7 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
     for curr in currencies:
         url = f"https://api.apilayer.com/exchangerates_data/{required_date}?symbols=rub&base={curr}"
         payload = {}
-        headers = {"apikey": API_KEY}
+        headers = {"apikey": API_KEY_CURRENCY}
         response = requests.get(url, headers=headers, data=payload)
         status_code = response.status_code
         if status_code == 200:
@@ -130,3 +129,37 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
     return formatted_rates_list
 
 #print(get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59"))
+
+
+def get_stock_price(stocks: list[str], date: str) -> list[dict]:
+    """Получаем наименования акций из списка"""
+    stocks_list = []
+    formatted_stocks_list = []
+    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    formatted_date = date_obj.strftime("%Y-%m-%d")
+    for stock in stocks:
+        url = f"https://api.marketstack.com/v1/eod/{formatted_date}?access_key={API_KEY_STOCK}"
+        querystring = {"symbols": stock}
+        response = requests.get(url, params=querystring)
+        status_code = response.status_code
+        if status_code == 200:
+            stocks_list.append(response.json())
+        else:
+            print(f"Запрос не был успешным. Возможная причина: {response.reason}")
+    for each_stock in stocks_list:
+        data_values = each_stock["data"]
+        for data_value in data_values:
+            price = data_value["close"]
+            stock_name = data_value["symbol"]
+            stock_dict = dict(stock=stock_name, price=price)
+            formatted_stocks_list.append(stock_dict)
+
+    return formatted_stocks_list
+
+#print(get_stock_price(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"], "2024-12-20 23:59:59"))
+
+
+
+
+
+
