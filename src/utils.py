@@ -2,19 +2,16 @@ import datetime
 import json
 import logging
 import os
-import re
 from typing import Any
-import currencyapicom
-import numpy as np
+
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from config import DATA_DIR, JSON_DIR
-
 load_dotenv()
 API_KEY_CURRENCY = os.getenv("API_KEY_CURRENCY")
 API_KEY_STOCK = os.getenv("API_KEY_STOCK")
+
 
 def get_transactions_from_excel(path_to_excel_file: str) -> list[dict[Any, Any]]:
     """Получаем список транзакций из excel-файла"""
@@ -53,7 +50,7 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> pd.Dat
 
 def get_cards(transactions: pd.DataFrame) -> list[dict]:
     """Группирует данные транзакций по номерам карт"""
-    transactions_filtered = transactions.loc[(transactions["Сумма операции"] < 0) & (transactions["Статус"] == "OK")]
+    transactions_filtered = transactions.loc[(transactions["Сумма платежа"] < 0) & (transactions["Статус"] == "OK")]
     transactions_filtered.loc[transactions_filtered["Кэшбэк"].isna(), "Кэшбэк"] = 0
     for index, row in transactions_filtered.iterrows():
         if row["Кэшбэк"] == 0:
@@ -61,25 +58,25 @@ def get_cards(transactions: pd.DataFrame) -> list[dict]:
                 transactions_filtered.at[index, "Сумма операции с округлением"] // 100
             )
     transactions_grouped_by_card = transactions_filtered.groupby("Номер карты", as_index=False).agg(
-        {"Сумма операции": "sum", "Кэшбэк": "sum"}
+        {"Сумма платежа": "sum", "Кэшбэк": "sum"}
     )
     transactions_grouped_by_card.rename(
-        columns={"Номер карты": "last_digits", "Сумма операции": "total_spent", "Кэшбэк": "cashback"}, inplace=True
+        columns={"Номер карты": "last_digits", "Сумма платежа": "total_spent", "Кэшбэк": "cashback"}, inplace=True
     )
     return transactions_grouped_by_card.to_dict(orient="records")
 
 
 def get_top_transactions(list_of_transactions: pd.DataFrame) -> list[dict]:
     """Выбираем топ-5 транзакций по сумме платежа"""
-    transactions_sorted_by_amount = list_of_transactions.sort_values("Сумма операции")
+    transactions_sorted_by_amount = list_of_transactions.sort_values("Сумма платежа")
     top_transactions = transactions_sorted_by_amount[
-        ["Дата операции", "Сумма операции", "Категория", "Описание"]
+        ["Дата операции", "Сумма платежа", "Категория", "Описание"]
     ].head()
     top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     top_transactions.rename(
         columns={
             "Дата операции": "date",
-            "Сумма операции": "amount",
+            "Сумма платежа": "amount",
             "Категория": "category",
             "Описание": "description",
         },
@@ -96,7 +93,7 @@ def get_currencies(path_to_json_file: str) -> Any:
     return currencies
 
 
-def get_stocks(path_to_json_file) -> Any:
+def get_stocks(path_to_json_file: str) -> Any:
     """Получаем список наименований акций из JSON-файла"""
     with open(path_to_json_file) as f:
         currencies_and_stocks = json.load(f)
@@ -128,7 +125,8 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
         formatted_rates_list.append(rate_dict)
     return formatted_rates_list
 
-#print(get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59"))
+
+# print(get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59"))
 
 
 def get_stock_price(stocks: list[str], date: str) -> list[dict]:
@@ -156,10 +154,5 @@ def get_stock_price(stocks: list[str], date: str) -> list[dict]:
 
     return formatted_stocks_list
 
-#print(get_stock_price(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"], "2024-12-20 23:59:59"))
 
-
-
-
-
-
+# print(get_stock_price(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"], "2024-12-20 23:59:59"))
