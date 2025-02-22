@@ -109,8 +109,10 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
     """Получаем курсы валют из списка"""
     rates_list = []
     formatted_rates_list = []
+    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    required_date = date_obj.strftime("%Y-%m-%d")
     for curr in currencies:
-        url = f"https://api.apilayer.com/exchangerates_data/{date}?symbols=rub&base={curr}"
+        url = f"https://api.apilayer.com/exchangerates_data/{required_date}?symbols=rub&base={curr}"
         payload = {}
         headers = {"apikey": API_KEY}
         response = requests.get(url, headers=headers, data=payload)
@@ -125,4 +127,6 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
         rate = round(each_rate["rates"]["RUB"], 2)
         rate_dict = dict(currency=currency_name, rate=rate)
         formatted_rates_list.append(rate_dict)
-    return rates_list
+    return formatted_rates_list
+
+#print(get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59"))

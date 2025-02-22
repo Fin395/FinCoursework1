@@ -24,3 +24,5 @@ def get_main_page(date: str) -> str:
     main_page_data = json.dumps(main_page_dict, indent=4, ensure_ascii=False)
 
     return main_page_data
+
+print(get_main_page("2021-12-20 23:59:59"))
