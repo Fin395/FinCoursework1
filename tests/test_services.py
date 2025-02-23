@@ -25,7 +25,7 @@ def test_get_transfers(sample_transactions: list[dict]) -> None:
     }
 
 
-def test_search_for_transcations_by_string_no_match(sample_transactions_json: list[dict]) -> None:
+def test_get_transfers_no_matches(sample_transactions_invalid_description: list[dict]) -> None:
     """Проверяем, что функция возвращает пустой список, если шаблон не найден"""
-    result = search_for_transcations_by_string(sample_transactions_json, "вклад")
+    result = get_transfers(sample_transactions_invalid_description)
     assert result == []

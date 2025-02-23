@@ -1,6 +1,8 @@
 import json
 import re
 import logging
+from typing import Any
+
 import pandas as pd
 
 from config import LOGS_FILE_SERVICES, DATA_DIR
@@ -13,7 +15,7 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def get_transfers(list_of_transaction: list[dict]) -> str:
+def get_transfers(list_of_transaction: list[dict]) -> Any:
     """ Выбираем из списка транзакций переводы физическим лица """
     filtered_transactions_by_category = []
     filtered_transactions_by_description = []
@@ -25,21 +27,22 @@ def get_transfers(list_of_transaction: list[dict]) -> str:
                 logger.info("Транзакция добавлена в список")
                 filtered_transactions_by_category.append(transaction)
         except Exception as e:
-            logger.error("Ошибка: отсутствует параметр 'категория'")
-            print(f"Ошибка {e}: отсутствуют параметр 'категория'")
+            logger.error("Ошибка: неверно указаны данные")
+            print(f"Ошибка {e}: не удалось обработать данные")
+            return []
 
     for each_transaction in filtered_transactions_by_category:
         try:
             description = each_transaction["Описание"]
         except Exception as e:
-            logger.error("Ошибка: отсутствует параметр 'описание'")
-            print(f"Ошибка {e}: отсутствует параметр 'Описание'")
+            logger.error("Ошибка: неверно указаны данные")
+            print(f"Ошибка {e}: не удалось обработать данные")
+            return []
         else:
             match = pattern.search(f"{description}")
             if match:
                 logger.info("Транзакция добавлена в список")
                 filtered_transactions_by_description.append(each_transaction)
-
 
     return json.dumps(filtered_transactions_by_description, indent=4, ensure_ascii=False)
 
