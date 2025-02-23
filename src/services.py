@@ -1,8 +1,9 @@
 import json
 import re
 import logging
+import pandas as pd
 
-from config import LOGS_FILE_SERVICES
+from config import LOGS_FILE_SERVICES, DATA_DIR
 
 logger = logging.getLogger("services")
 logger.setLevel(logging.DEBUG)
@@ -43,6 +44,7 @@ def get_transfers(list_of_transaction: list[dict]) -> str:
     return json.dumps(filtered_transactions_by_description, indent=4, ensure_ascii=False)
 
 
-#transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
-#transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
-#print(get_transfers(transactions)) # Вызов функции
+transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
+#print(transactions_data.to_dict(orient="records"))
+transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
+print(get_transfers(transactions)) # Вызов функции
