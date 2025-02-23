@@ -26,6 +26,10 @@ mypy = "^1.15.0"
 black = "^25.1.0"
 isort = "^6.0.0"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
 [tool.mypy]
 disallow_untyped_defs = true
 warn_return_any = true

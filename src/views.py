@@ -2,14 +2,12 @@ import json
 
 from config import DATA_DIR, JSON_DIR
 from src.utils import (filter_transactions_by_period, get_cards, get_currencies, get_currency_rate, get_greetings,
-                       get_stock_price, get_stocks, get_top_transactions, get_transactions_from_excel)
+                       get_stock_price, get_stocks, get_top_transactions)
 
 
-def get_main_page(date: str) -> str:
+def get_main_page(transactions, date: str) -> str:
     """Получаем информацию для главной страницы"""
     main_page_dict = dict()
-
-    transactions = get_transactions_from_excel(DATA_DIR)
     transactions_in_timeframe = filter_transactions_by_period(transactions, date)
     greetings = get_greetings()
     cards = get_cards(transactions_in_timeframe)
@@ -26,4 +24,4 @@ def get_main_page(date: str) -> str:
     return main_page_data
 
 
-# print(get_main_page("2024-12-20 23:59:59"))
+#print(get_main_page("2024-12-20 23:59:59"))
