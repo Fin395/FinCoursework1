@@ -45,7 +45,7 @@ def get_transfers(list_of_transaction: list[dict]) -> Any:
     return json.dumps(filtered_transactions_by_description, indent=4, ensure_ascii=False)
 
 
-transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
+#transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
 #print(transactions_data.to_dict(orient="records"))
-transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
-print(get_transfers(transactions))
+#transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
+#print(get_transfers(transactions))
