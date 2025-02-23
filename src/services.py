@@ -26,18 +26,16 @@ def get_transfers(list_of_transaction: list[dict]) -> Any:
             if transaction["Категория"] == "Переводы":
                 logger.info("Транзакция добавлена в список")
                 filtered_transactions_by_category.append(transaction)
-        except Exception as e:
+        except KeyError as e:
             logger.error("Ошибка: неверно указаны данные")
             print(f"Ошибка {e}: не удалось обработать данные")
-            return []
 
     for each_transaction in filtered_transactions_by_category:
         try:
             description = each_transaction["Описание"]
-        except Exception as e:
+        except KeyError as e:
             logger.error("Ошибка: неверно указаны данные")
             print(f"Ошибка {e}: не удалось обработать данные")
-            return []
         else:
             match = pattern.search(f"{description}")
             if match:
@@ -50,4 +48,4 @@ def get_transfers(list_of_transaction: list[dict]) -> Any:
 transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
 #print(transactions_data.to_dict(orient="records"))
 transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
-print(get_transfers(transactions)) # Вызов функции
+print(get_transfers(transactions))
