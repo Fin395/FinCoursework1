@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from typing import Any
-from config import LOGS_FILE_UTILS, JSON_DIR
+from config import LOGS_FILE_UTILS, JSON_DIR, DATA_DIR
 
 import pandas as pd
 import requests
@@ -35,7 +35,7 @@ def get_greetings() -> str:
     else:
         return "Добрый вечер"
 
-print(get_greetings())
+#print(get_greetings())
 
 
 def filter_transactions_by_period(transactions: list[dict], date: str) -> list[dict]:
@@ -45,10 +45,14 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> list[d
     start_of_period = end_of_period.replace(day=1, hour=0, minute=0, second=0)
     df = pd.DataFrame(transactions)
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
-    logger.info("Происходит выборка транзакций в заданный период времени")
+    logger.info("Происходит выборка транзакций за указанный период времени")
     filtered_transactions = df.loc[(df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)]
+    filtered_transactions["Дата операции"] = filtered_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     return filtered_transactions.to_dict(orient="records")
 
+#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
+#all_operations_as_list_dict = all_operations.to_dict(orient="records")
+#print(filter_transactions_by_period(all_operations_as_list_dict, "2021-12-20 23:59:59"))
 
 def get_cards(transactions: list[dict]) -> list[dict]:
     """Группирует данные транзакций по номерам карт"""
@@ -85,7 +89,7 @@ def get_top_transactions(list_of_transactions: list[dict]) -> list[dict]:
     top_transactions = transactions_sorted_by_amount[
         ["Дата операции", "Сумма платежа", "Категория", "Описание"]
     ].head()
-    top_transactions["Дата операции"] = pd.to_datetime(top_transactions["Дата операции"])
+    top_transactions["Дата операции"] = pd.to_datetime(top_transactions["Дата операции"], dayfirst=True)
     top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     logger.info("Происходит переименование позиций")
     top_transactions.rename(

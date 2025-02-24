@@ -1,3 +1,5 @@
+from math import nan
+
 import pytest
 from typing import Any
 from unittest.mock import Mock, patch, mock_open
@@ -9,23 +11,23 @@ from src.utils import get_greetings, filter_transactions_by_period, get_cards, g
     get_stocks, get_currency_rate, get_stock_price
 
 
-#def test_filter_transactions_by_period(sample_transactions):
-#    result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")
-#    assert result == [{'MCC': nan,
-#  'Бонусы (включая кэшбэк)': 0,
-#  'Валюта операции': 'RUB',
-#  'Валюта платежа': 'RUB',
-#  'Дата операции': '2018-01-01 12:49:53',
-#  'Дата платежа': '01.01.2018',
-#  'Категория': 'Переводы',
-#  'Кэшбэк': nan,
-#  'Номер карты': nan,
-#  'Округление на инвесткопилку': 0,
-#  'Описание': 'Линзомат ТЦ Юность',
-#  'Статус': 'OK',
-#  'Сумма операции': -3000.0,
-#  'Сумма операции с округлением': 3000.0,
-#  'Сумма платежа': -3000.0}]
+def test_filter_transactions_by_period(sample_transactions):
+    result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")
+    assert result == [{'MCC': nan,
+  'Бонусы (включая кэшбэк)': 0,
+  'Валюта операции': 'RUB',
+  'Валюта платежа': 'RUB',
+  'Дата операции': '01.01.2018',
+  'Дата платежа': '01.01.2018',
+  'Категория': 'Переводы',
+  'Кэшбэк': nan,
+  'Номер карты': nan,
+  'Округление на инвесткопилку': 0,
+  'Описание': 'Линзомат ТЦ Юность',
+  'Статус': 'OK',
+  'Сумма операции': -3000.0,
+  'Сумма операции с округлением': 3000.0,
+  'Сумма платежа': -3000.0}]
 
 
 def test_get_cards(sample_transactions: list[dict]) -> None:
