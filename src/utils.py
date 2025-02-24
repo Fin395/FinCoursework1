@@ -21,10 +21,10 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def get_greetings(date) -> str:
+def get_greetings() -> str:
     """Определяем приветствие по времени суток"""
     logger.info("Определяются текущие дата и время")
-    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    date_obj = datetime.datetime.now()
     hour = date_obj.hour
     if 0 <= hour < 6:
         return "Доброй ночи"
@@ -35,7 +35,7 @@ def get_greetings(date) -> str:
     else:
         return "Добрый вечер"
 
-#print(get_greetings("2018-01-02 02:59:59"))
+print(get_greetings())
 
 
 def filter_transactions_by_period(transactions: list[dict], date: str) -> list[dict]:

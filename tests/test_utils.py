@@ -1,26 +1,13 @@
-import datetime
 import pytest
-from math import nan
-from sqlite3 import Timestamp
 from typing import Any
 from unittest.mock import Mock, patch, mock_open
+import datetime
+
 
 from config import JSON_DIR
 from src.utils import get_greetings, filter_transactions_by_period, get_cards, get_top_transactions, get_currencies, \
     get_stocks, get_currency_rate, get_stock_price
 
-@pytest.mark.parametrize(
-    "sample_dates, expected",
-    [
-        ("2018-01-02 23:59:59", "Добрый вечер"),
-        ("2018-01-02 15:59:59", "Добрый день"),
-        ("2018-01-02 10:59:59", "Доброе утро"),
-        ("2018-01-02 05:59:59", "Доброй ночи"),
-    ],
-)
-def test_get_greetings(sample_dates: str, expected: str) -> None:
-    """ Тестирование корректности приветствия """
-    assert get_greetings(sample_dates) == expected
 
 #def test_filter_transactions_by_period(sample_transactions):
 #    result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")

@@ -9,7 +9,7 @@ def get_main_page(transactions, date: str) -> str:
     """Получаем информацию для главной страницы"""
     main_page_dict = dict()
     transactions_in_timeframe = filter_transactions_by_period(transactions, date)
-    greetings = get_greetings(date)
+    greetings = get_greetings()
     cards = get_cards(transactions_in_timeframe)
     top_transactions = get_top_transactions(transactions_in_timeframe)
 #    currency_rates = get_currency_rate(get_currencies(JSON_DIR), date)
