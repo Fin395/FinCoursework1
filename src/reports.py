@@ -28,7 +28,9 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
     trans_filtered_by_spent = trans_filtered_by_period.loc[(trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")]
     logger.info(f"Происходит выборка трат по категории: {category}")
     trans_filtered_by_category = trans_filtered_by_spent.loc[(trans_filtered_by_spent["Категория"] == category)]
-    return trans_filtered_by_category
+    trans_filtered_by_category["Дата операции"] = trans_filtered_by_category["Дата операции"].dt.strftime("%d.%m.%Y")
 
-all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-print(spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12"))
+    return trans_filtered_by_category.to_dict(orient="records")
+
+#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
+#print(spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12"))
