@@ -10,4 +10,5 @@ LOGS_FILE_REPORTS = os.path.join(ROOT_DIR, "logs", "reports.log")
 DATA_DIR = os.path.join(ROOT_DIR, "data", "operations.xlsx")
 JSON_DIR = os.path.join(ROOT_DIR, "user_settings.json")
 
-REPORTS_DEFAULT_JSON = os.path.join(ROOT_DIR, "data", "reports.json")
+REPORTS_DEFAULT_JSON = os.path.join(ROOT_DIR, "data", "default_reports.json")
+REPORTS_SPECIFIED_JSON = os.path.join(ROOT_DIR, "data", "specified_reports.json")
