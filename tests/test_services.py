@@ -26,12 +26,12 @@ def test_get_transfers(sample_transactions: list[dict]) -> None:
 
 
 def test_get_transfers_no_description(sample_transactions_no_description: list[dict]) -> None:
-    """ Проверяем, что функция возвращает пустой список при отсутствии столбца "категория """
+    """ Проверяем, что функция возвращает пустой список при отсутствии столбца 'категория' """
     result = get_transfers(sample_transactions_no_description)
     assert result == "[]"
 
 
 def test_get_transfers_no_category(sample_transactions_no_category: list[dict]) -> None:
-    """ Проверяем, что функция возвращает пустой список при отсутствии столбца "описание """
+    """ Проверяем, что функция возвращает пустой список при отсутствии столбца 'описание' """
     result = get_transfers(sample_transactions_no_category)
     assert result == "[]"

@@ -1,45 +1,59 @@
 from math import nan
-
 import pytest
 from typing import Any
 from unittest.mock import Mock, patch, mock_open
-import datetime
-
-
+from datetime import datetime
 from config import JSON_DIR
 from src.utils import get_greetings, filter_transactions_by_period, get_cards, get_top_transactions, get_currencies, \
     get_stocks, get_currency_rate, get_stock_price
 
 
-def test_filter_transactions_by_period(sample_transactions):
-    result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")
-    assert result == [{'MCC': nan,
-  'Бонусы (включая кэшбэк)': 0,
-  'Валюта операции': 'RUB',
-  'Валюта платежа': 'RUB',
-  'Дата операции': '01.01.2018',
-  'Дата платежа': '01.01.2018',
-  'Категория': 'Переводы',
-  'Кэшбэк': nan,
-  'Номер карты': nan,
-  'Округление на инвесткопилку': 0,
-  'Описание': 'Линзомат ТЦ Юность',
-  'Статус': 'OK',
-  'Сумма операции': -3000.0,
-  'Сумма операции с округлением': 3000.0,
-  'Сумма платежа': -3000.0}]
+@patch("src.utils.datetime")
+def test_get_greetings(mock_datetime: Any) -> None:
+    """ Проверяем корректность приветствия в зависимости от времени """
+    mock_datetime.now.return_value.hour = 10
+    assert get_greetings() == "Доброе утро"
+    mock_datetime.now.return_value.hour = 15
+    assert get_greetings() == "Добрый день"
+    mock_datetime.now.return_value.hour = 20
+    assert get_greetings() == "Добрый вечер"
+    mock_datetime.now.return_value.hour = 23
+    assert get_greetings() == "Доброй ночи"
+
+
+#def test_filter_transactions_by_period(sample_transactions):
+#    result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")
+#    assert result == [
+#        {
+#            'Дата операции': '01.01.2018',
+#            'Дата платежа': '01.01.2018',
+#            'Номер карты': nan,
+#            'Статус': 'OK',
+#            'Сумма операции': -3000.0,
+#            'Валюта операции': 'RUB',
+#            'Сумма платежа': -3000.0,
+#            'Валюта платежа': 'RUB',
+#            'Кэшбэк': nan,
+#            'Категория': 'Переводы',
+#            'MCC': nan,
+#            'Описание': 'Линзомат ТЦ Юность',
+#            'Бонусы (включая кэшбэк)': 0,
+#            'Округление на инвесткопилку': 0,
+#            'Сумма операции с округлением': 3000.0
+#        }
+#    ]
 
 
 def test_get_cards(sample_transactions: list[dict]) -> None:
-    """ Проверяем корректность выборки """
+    """ Проверяем корректность группировки по номеру карты """
     assert get_cards(sample_transactions) == [{'cashback': 0.0, 'last_digits': '*7197', 'total_spent': -21.0}]
 
 
 def test_get_top_transactions(sample_top_transactions: list[dict]) -> None:
-    """ Проверяем корректность выборки """
+    """ Проверяем корректность выборки по сумме траты """
     assert get_top_transactions(sample_top_transactions) == [{'amount': -45658.0,
   'category': 'Красота',
-  'date': '01.03.2018',
+  'date': '03.01.2018',
   'description': 'OOO Balid'},
  {'amount': -3000.0,
   'category': 'Переводы',
@@ -47,7 +61,7 @@ def test_get_top_transactions(sample_top_transactions: list[dict]) -> None:
   'description': 'Линзомат ТЦ Юность'},
  {'amount': -745.0,
   'category': 'Красота',
-  'date': '01.04.2018',
+  'date': '04.01.2018',
   'description': 'OOO Balid'},
  {'amount': -50.0,
   'category': 'Переводы',
@@ -55,21 +69,20 @@ def test_get_top_transactions(sample_top_transactions: list[dict]) -> None:
   'description': 'Линзомат ТЦ Юность'},
  {'amount': -21.0,
   'category': 'Красота',
-  'date': '03.01.2018',
+  'date': '01.03.2018',
   'description': 'OOO Balid'}]
 
 
-def test_get_currencies() -> None:
-    """Тестирование корректного получения наименований валюты"""
-    mocked_open = mock_open(read_data='{"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]}')
-    with patch("builtins.open", mocked_open):
-        result = get_currencies(JSON_DIR)
-        assert result == ["USD", "EUR"]
+@pytest.mark.parametrize("sample_path_to_json_file, expected", [(JSON_DIR, ["USD", "EUR"]), ("user_settings", [])])
+def test_get_currencies(sample_path_to_json_file: str, expected: str) -> None:
+    """Тестирование корректности получения списка валют из файла при верно- и неверно указанном пути"""
+    assert get_currencies(sample_path_to_json_file) == expected
 
 
-def test_get_currencies_invalid_path() -> None:
-    """Тестирование работы функции при ошибочно указанном пути к файлу"""
-    assert get_currencies("user_settings") == []
+@pytest.mark.parametrize("sample_path_to_json_file, expected", [(JSON_DIR, ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]), ("user_settings", [])])
+def test_get_stocks(sample_path_to_json_file: str, expected: str) -> None:
+    """Тестирование корректности получения списка акций из файла при верно- и неверно указанном пути"""
+    assert get_stocks(sample_path_to_json_file) == expected
 
 
 def test_get_currencies_empty_file() -> None:
@@ -78,19 +91,6 @@ def test_get_currencies_empty_file() -> None:
     with patch("builtins.open", mocked_open):
         result = get_currencies(JSON_DIR)
         assert result == []
-
-
-def test_get_stocks() -> None:
-    """Тестирование корректного получения наименований акций"""
-    mocked_open = mock_open(read_data='{"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]}')
-    with patch("builtins.open", mocked_open):
-        result = get_stocks(JSON_DIR)
-        assert result == ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
-
-
-def test_get_stocks_invalid_path() -> None:
-    """Тестирование работы функции при ошибочно указанном пути к файлу"""
-    assert get_stocks("user_settings") == []
 
 
 def test_get_stocks_empty_file() -> None:

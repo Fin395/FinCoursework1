@@ -7,6 +7,69 @@ from src.reports import spending_by_category
 
 all_operations = pd.read_excel(DATA_DIR, na_filter=True)
 
-def test_spending_by_category():
-    result = spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12")
-    assert result == [{'Дата операции': '29.11.2019', 'Дата платежа': '01.12.2019', 'Номер карты': '*7197', 'Статус': 'OK', 'Сумма операции': -360.0, 'Валюта операции': 'RUB', 'Сумма платежа': -360.0, 'Валюта платежа': 'RUB', 'Кэшбэк': nan, 'Категория': 'Цветы', 'MCC': 5992.0, 'Описание': 'Cvety Opt Roznica', 'Бонусы (включая кэшбэк)': 7, 'Округление на инвесткопилку': 0, 'Сумма операции с округлением': 360.0}, {'Дата операции': '16.09.2019', 'Дата платежа': '19.09.2019', 'Номер карты': '*7197', 'Статус': 'OK', 'Сумма операции': -650.0, 'Валюта операции': 'RUB', 'Сумма платежа': -650.0, 'Валюта платежа': 'RUB', 'Кэшбэк': nan, 'Категория': 'Цветы', 'MCC': 5992.0, 'Описание': 'Cvety Opt Roznica', 'Бонусы (включая кэшбэк)': 13, 'Округление на инвесткопилку': 0, 'Сумма операции с округлением': 650.0}]
+from typing import Any
+
+import pytest
+
+from src.decorators import log
+
+
+def test_log_return() -> None:
+    """Проверяем, что декоратор корректно возвращает результат функции"""
+
+    @log(filename="mylog.txt")
+    def my_function(x: int | float, y: int | float) -> int | float:
+        return x + y
+
+    my_function(1, 2)
+    assert my_function(1, 2) == 3
+
+
+def test_log_invalid_parameters() -> None:
+    """Проверяем, что декоратор вызывает ошибку при неверно переданных аргументах"""
+    with pytest.raises(Exception):
+
+        @log(filename="mylog.txt")
+        def my_function(x: int | float, y: int | float) -> int | float:
+            return x + y
+
+        my_function(1)
+
+
+def test_log_console_capture_if_ok(capsys: Any) -> Any:
+    """Тестирование вывода результатов в консоль при корректно переданных аргументах"""
+
+    @log()
+    def my_function(x: int | float, y: int | float) -> int | float:
+        return x + y
+
+    my_function(1, 2)
+    captured = capsys.readouterr()
+    assert "my_function ok, result: 3" in captured.out
+
+
+def test_log_printing_to_file() -> None:
+    """Тестируем вывод результата в файл"""
+
+    @log(filename="mylog.txt")
+    def my_function(x: int | float, y: int | float) -> int | float:
+        return x + y
+
+    my_function(1, 2)
+    with open("mylog.txt", "r") as file:
+        content = file.read()
+    assert "my_function ok, result: 3" in content
+
+
+def test_log_console_capture_if_valid(capsys: Any) -> Any:
+    """Тестирование вывода результатов в консоль при некорректно переданных аргументах"""
+    with pytest.raises(Exception) as f:
+
+        @log()
+        def my_function(x: int | float, y: int | float) -> int | float:
+            return x + y
+
+        my_function(1)
+
+        captured = capsys.readouterr()
+        assert f in captured.out

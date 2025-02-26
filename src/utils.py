@@ -1,10 +1,10 @@
-import datetime
+from datetime import datetime
 import json
 import logging
 import os
+from math import nan
 from typing import Any
 from config import LOGS_FILE_UTILS, JSON_DIR, DATA_DIR
-
 import pandas as pd
 import requests
 from dotenv import load_dotenv
@@ -24,35 +24,37 @@ logger.addHandler(file_handler)
 def get_greetings() -> str:
     """Определяем приветствие по времени суток"""
     logger.info("Определяются текущие дата и время")
-    date_obj = datetime.datetime.now()
-    hour = date_obj.hour
-    if 0 <= hour < 6:
-        return "Доброй ночи"
-    elif 6 <= hour < 12:
+    now = datetime.now()
+    if 5 <= now.hour < 12:
         return "Доброе утро"
-    elif 12 <= hour < 18:
+    elif 12 <= now.hour < 18:
         return "Добрый день"
-    else:
+    elif 18 <= now.hour < 23:
         return "Добрый вечер"
+    else:
+        return "Доброй ночи"
 
 #print(get_greetings())
 
 
 def filter_transactions_by_period(transactions: list[dict], date: str) -> list[dict]:
     """Выбираем транзакции с начала месяца, на который выпадает входящая дата, по входящую дату"""
-    end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    end_of_period = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     logger.info("Определяется начало месяца")
     start_of_period = end_of_period.replace(day=1, hour=0, minute=0, second=0)
+
     df = pd.DataFrame(transactions)
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
+
     logger.info("Происходит выборка транзакций за указанный период времени")
-    filtered_transactions = df.loc[(df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)]
+    filtered_transactions = df.loc[(df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)].copy()
     filtered_transactions["Дата операции"] = filtered_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     return filtered_transactions.to_dict(orient="records")
 
 #all_operations = pd.read_excel(DATA_DIR, na_filter=True)
 #all_operations_as_list_dict = all_operations.to_dict(orient="records")
-#print(filter_transactions_by_period(all_operations_as_list_dict, "2021-12-20 23:59:59"))
+#print(all_operations_as_list_dict)
+#print(filter_transactions_by_period(all_operations_as_list_dict, "2018-01-02 23:59:59"))
 
 def get_cards(transactions: list[dict]) -> list[dict]:
     """Группирует данные транзакций по номерам карт"""
@@ -155,7 +157,7 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
     """Получаем курсы валют из списка"""
     rates_list = []
     formatted_rates_list = []
-    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    date_obj = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     logger.info("Устанавливаем необходимый формат даты")
     required_date = date_obj.strftime("%Y-%m-%d")
 
@@ -189,7 +191,7 @@ def get_stock_price(stocks: list[str], date: str) -> list[dict]:
     """Получаем наименования акций из списка"""
     stocks_list = []
     formatted_stocks_list = []
-    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    date_obj = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     logger.info("Устанавливаем необходимый формат даты")
     formatted_date = date_obj.strftime("%Y-%m-%d")
 

@@ -16,7 +16,7 @@ logger.addHandler(file_handler)
 
 
 def get_transfers(list_of_transaction: list[dict]) -> Any:
-    """ Выбираем из списка транзакций переводы физическим лица """
+    """ Выбираем из списка транзакций переводы физическим лицам """
     filtered_transactions_by_category = []
     filtered_transactions_by_description = []
     pattern = re.compile(r"\b[А-Я][а-я]+\s[А-Я]\.")

@@ -1,16 +1,7 @@
 from math import nan
 import pytest
 
-@pytest.fixture
-def sample_dates() -> list[str]:
-    """Создаем фикстуру для тестирования"""
-    return [
-        "2018-01-02 23:59:59",
-        "2018-01-02 15:59:59",
-        "2018-01-02 10:59:59",
-        "2018-01-02 05:59:59",
-    ]
-
+from config import JSON_DIR
 
 
 @pytest.fixture
@@ -224,3 +215,8 @@ def sample_top_transactions() -> list[dict]:
             'Описание': 'Ксения К.',
         }
     ]
+
+@pytest.fixture
+def sample_path_to_json_file() -> list[dict]:
+    """Создаем фикстуру для тестирования корректности получения данных из JSON-файла"""
+    return [JSON_DIR, "user_settings"]
