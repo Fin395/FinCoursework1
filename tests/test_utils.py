@@ -1,6 +1,4 @@
 from math import nan
-from unittest import result
-
 import pytest
 from typing import Any
 from unittest.mock import Mock, patch, mock_open
@@ -44,8 +42,7 @@ def test_filter_transactions_by_period(sample_transactions):
             'Сумма операции с округлением': 3000.0
         }
     ]
-    print(result)
-#   print(expected)
+
 
 def test_get_cards(sample_transactions: list[dict]) -> None:
     """ Проверяем корректность группировки по номеру карты """

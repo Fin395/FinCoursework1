@@ -1,6 +1,7 @@
 import datetime
 import logging
 from functools import wraps
+from json import JSONDecodeError
 from typing import Optional, Callable, Any
 import json
 
@@ -28,7 +29,7 @@ def record_to_file(filename: Optional[str] = REPORTS_DEFAULT_JSON) -> Callable:
                 with open(filename, "w", encoding='utf-8') as file:
                     logger.info(f"Функция {func.__name__} записывает выбранные транзакции в файл {filename}")
                     json.dump(result.to_dict(orient="records"), file, indent=4, ensure_ascii=False)
-            except FileNotFoundError as ex:
+            except Exception as ex:
                 logger.error(f"Произошла ошибка: {ex}")
                 print(f"Произошла ошибка: {ex}")
                 return []
@@ -38,27 +39,34 @@ def record_to_file(filename: Optional[str] = REPORTS_DEFAULT_JSON) -> Callable:
     return decorator
 
 
-@record_to_file()
 def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
     """ Функция отбирает транзакции по тратам по определенной категории """
-    if date:
-        end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    else:
-        end_of_period = datetime.datetime.now()
-    logger.info("Рассчитываем 3-х месячный период")
-    start_of_period = end_of_period - pd.DateOffset(months=3)
-    transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
-    logger.info("Происходит выборка транзакций за 3 месяца")
-    trans_filtered_by_period = transactions.loc[(transactions["Дата операции"] >= start_of_period) & (transactions["Дата операции"] <= end_of_period)]
-    logger.info("Отбираем успешные траты")
-    trans_filtered_by_spent = trans_filtered_by_period.loc[(trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")]
-    logger.info(f"Происходит выборка трат по категории: {category}")
-    trans_filtered_by_category = trans_filtered_by_spent.loc[(trans_filtered_by_spent["Категория"] == category)].copy()
-    trans_filtered_by_category["Дата операции"] = trans_filtered_by_category["Дата операции"].dt.strftime("%d.%m.%Y")
+    try:
+        if date:
+            end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
-    return trans_filtered_by_category
+        else:
+            end_of_period = datetime.datetime.now()
+
+        logger.info("Рассчитываем 3-х месячный период")
+        start_of_period = end_of_period - pd.DateOffset(months=3)
+        transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
+        logger.info("Происходит выборка транзакций за 3 месяца")
+        trans_filtered_by_period = transactions.loc[(transactions["Дата операции"] >= start_of_period) & (transactions["Дата операции"] <= end_of_period)]
+        logger.info("Отбираем успешные траты")
+        trans_filtered_by_spent = trans_filtered_by_period.loc[(trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")]
+        logger.info(f"Происходит выборка трат по категории: {category}")
+        trans_filtered_by_category = trans_filtered_by_spent.loc[(trans_filtered_by_spent["Категория"] == category)].copy()
+        trans_filtered_by_category["Дата операции"] = trans_filtered_by_category["Дата операции"].dt.strftime("%d.%m.%Y")
+
+        return trans_filtered_by_category
+
+    except Exception as ex:
+        logger.error(f"Произошла ошибка: {ex}")
+        print(f"Произошла ошибка: {ex}")
+
 
 #all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-#spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12")
+#spending_by_category(all_operations, "Цветы", "2019.12-10 23:30:12")
 #main_page_data = json.dumps(main_page_dict, indent=4, ensure_ascii=False)
 #to_dict(orient="records")
