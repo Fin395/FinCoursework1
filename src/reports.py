@@ -1,10 +1,8 @@
 import datetime
 import logging
 from functools import wraps
-from json import JSONDecodeError
 from typing import Optional, Callable, Any
 import json
-
 import pandas as pd
 
 from config import DATA_DIR, LOGS_FILE_REPORTS, REPORTS_DEFAULT_JSON
@@ -25,26 +23,19 @@ def record_to_file(filename: Optional[str] = REPORTS_DEFAULT_JSON) -> Callable:
         def wrapper(*args: tuple[tuple, ...], **kwargs: dict[str, Any]) -> Any:
             """ Создаем замыкание """
             result = func(*args, **kwargs)
-            try:
-                with open(filename, "w", encoding='utf-8') as file:
-                    logger.info(f"Функция {func.__name__} записывает выбранные транзакции в файл {filename}")
-                    json.dump(result.to_dict(orient="records"), file, indent=4, ensure_ascii=False)
-            except Exception as ex:
-                logger.error(f"Произошла ошибка: {ex}")
-                print(f"Произошла ошибка: {ex}")
-                return []
-            else:
-                return result
+            with open(filename, "w", encoding='utf-8') as file:
+                logger.info(f"Функция {func.__name__} записывает выбранные транзакции в файл {filename}")
+                json.dump(result.to_dict(orient="records"), file, indent=4, ensure_ascii=False)
+            return result
         return wrapper
     return decorator
 
 
-def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame | str:
     """ Функция отбирает транзакции по тратам по определенной категории """
     try:
         if date:
             end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-
         else:
             end_of_period = datetime.datetime.now()
 
@@ -53,6 +44,8 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
         logger.info("Происходит выборка транзакций за 3 месяца")
         trans_filtered_by_period = transactions.loc[(transactions["Дата операции"] >= start_of_period) & (transactions["Дата операции"] <= end_of_period)]
+        if len(trans_filtered_by_period.to_dict(orient="records")) == 0:
+            return "В указанном периоде транзакции отсутствуют"
         logger.info("Отбираем успешные траты")
         trans_filtered_by_spent = trans_filtered_by_period.loc[(trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")]
         logger.info(f"Происходит выборка трат по категории: {category}")
@@ -66,7 +59,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         print(f"Произошла ошибка: {ex}")
 
 
-#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-#spending_by_category(all_operations, "Цветы", "2019.12-10 23:30:12")
+all_operations = pd.read_excel(DATA_DIR, na_filter=True)
+print(spending_by_category(all_operations, "Цветы"))
 #main_page_data = json.dumps(main_page_dict, indent=4, ensure_ascii=False)
 #to_dict(orient="records")
