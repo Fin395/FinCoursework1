@@ -20,7 +20,7 @@
 
 1. Клонируйте репозиторий:
    ```
-   git clone https://github.com/Fin395/FinCoursework1.git 
+   git clone https://github.com/Fin395/TransactionAnalysis.git 
    ```
 2. Перейдите в директорию проекта:
    ```
@@ -33,61 +33,57 @@
 
 ## Использование
 
-В модуле **"views.py"** реализована основная функция категории *"Веб-страницы. Главная"*, а также ряд вспомогательных,
-которые передают результаты своей работы в *"views.py"*.
+В модуле **"views.py"** реализована основная функция категории *"Веб-страницы. Главная"*, которая принимает данные
+от вспомогательных функций из модуля **"utils"**.
 
 ```
-from src.utils import get_top_transactions, sort_by_date
+from src.utils import filter_transactions_by_period
 
-# Пример использования filter_by_state
+# Пример использования filter_transactions_by_period
 transactions = [
-    {'id': 41428829, 'state': 'EXECUTED', 'date': '2019-07-03T18:35:29.512364'},
-    {'id': 59402872, 'state': 'CANCELLED', 'date': '2018-09-17T21:27:25.241241'}
+         {'Дата операции': '01.01.2018 12:49:53', 'Сумма операции': -3000.0},
+         {'Дата операции': '03.01.2018 14:55:21', 'Сумма операции': -21.0},
+         {'Дата операции': '16.10.2018 20:56:20', 'Сумма операции': -500.0},
+         ]
+ 
+filtered_transactions = filter_by_state(transactions)
+
+```
+
+В модуле **"utils.py"** реализованы функции, использующие API-ключи для получения от внешних сервисов информации
+о курсах валют и стоимости акций.
+
+```
+from src.utilscimport get_currency_rate, get_stock_price
+
+# Пример использования get_stock_price
+stocks = get_stock_price(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"], "2024-12-20 23:59:59")
+
+# Пример использования get_currency_rate
+currencies = get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59")
+```
+
+
+В проекте в модуле **services.py** реализована функция, позволяющая из всех транзакций выбрать только переводы 
+физическим лицам.
+
+```
+from src.services import get_transfers
+
+# Пример использования get_transfers
+transactions = [
+{'Категория': 'Красота', 'Описание': 'OOO Balid'},
+{'Категория': 'Переводы', 'Описание': 'Ксения К.'},
 ]
-executed_transactions = filter_by_state(transactions)
-
-# Пример использования sort_by_date
-sorted_transactions = sort_by_date(transactions)
+transfers_to_individuals = get_transfers(transactions)    
 ```
 
-В проекте в модуле **generators.py** созданы функции, реализующие генераторы для обработки данных.
+В модуле **reports.py** создан декоратор для функции-отчета. Он записывает в файл результат, 
+который возвращает функция, формирующая отчет.
 
-Примеры использования таких функций:
-```
-from src.generators card_number_generator, filter_by_currency, transaction_descriptions
 
-# Пример использования filter_by_currency
-usd_transactions = filter_by_currency(transactions, "USD")
-for _ in range(2):
-    print(next(usd_transactions))
-
-# Пример использования transaction_descriptions
-descriptions = transaction_descriptions(transactions)
-for _ in range(5):
-    print(next(descriptions))
-    
-# Пример использования card_number_generator
-for card_number in card_number_generator(1, 5):
-    print(card_number)    
-```
-
-В модуле **decorators.py** создан декоратор, который автоматически регистрирует детали выполнения функций.
-Это позволит обеспечить более глубокий контроль и анализ поведения программы в процессе ее выполнения.
-
-Пример использования декоратора:
-```
-@log(filename="mylog.txt")
-def my_function(x, y):
-    return x + y
-
-my_function(1, 2)
-```
-В проекте в модуле **transactions.py** созданы функции, считывающие данные из CSV-файлов и EXCEL-файлов.
-В модуле **search_for_transaction** реализована функция, позволяющая осуществить выборку из списка по строке поиска.
-Также реализована функция, осуществляющая подсчет объектов по категориям.
-
-В основном модуле **main.py** реализована функция, которая отвечает за основную логику проекта, связывает
-функциональности между собой и предоставляет пользовательский интерфейс.
+В основном модуле **main.py** реализована функция, которая отвечает за основную логику проекта и связывает
+функциональности между собой.
 
 ## Тестирование
 

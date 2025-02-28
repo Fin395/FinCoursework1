@@ -43,6 +43,15 @@ def test_filter_transactions_by_period(sample_transactions):
         }
     ]
 
+for elem1, elem2 in zip(result[0], d[0]):
+    if type(result[0][elem1]) is float and np.isnan(result[0][elem1]):
+        assert np.isnan(result[0][elem1]) == np.isnan(d[0][elem1])
+    else:
+        assert result[0][elem1] == d[0][elem2]
+
+
+
+
 
 def test_get_cards(sample_transactions: list[dict]) -> None:
     """ Проверяем корректность группировки по номеру карты """
