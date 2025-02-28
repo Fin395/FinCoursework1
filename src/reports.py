@@ -62,4 +62,3 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
 
 transactions_data = pd.read_excel(DATA_DIR, na_filter=True)
 spending_by_category(transactions_data, "Цветы", "2019-12-10 23:30:12")
-
