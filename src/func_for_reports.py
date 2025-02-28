@@ -42,7 +42,5 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         print(f"Произошла ошибка: {ex}")
 
 
-all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-print(spending_by_category(all_operations, "Цветы", "2019-11-11 23:11:11"))
-#main_page_data = json.dumps(main_page_dict, indent=4, ensure_ascii=False)
-#to_dict(orient="records")
+#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
+#print(spending_by_category(all_operations, "Цветы", "2019-11-11 23:11:11"))

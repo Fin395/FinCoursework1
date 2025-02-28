@@ -15,5 +15,4 @@ print(main_page_json_info)
 services_info = get_transfers(all_operations_as_list_dict)
 print(services_info)
 
-
 spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12")

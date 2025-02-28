@@ -13,9 +13,6 @@ all_operations = pd.read_excel(DATA_DIR, na_filter=True)
 from typing import Optional
 
 
-
-
-
 def test_record_to_default_file() -> None:
     """ Проверяем, что результат выводится в файл по умолчанию """
     @record_to_file()

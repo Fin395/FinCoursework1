@@ -3,7 +3,7 @@ from math import nan
 import pandas as pd
 
 from config import DATA_DIR
-from src.func import spending_by_category
+from src.func_for_reports import spending_by_category
 
 
 def test_spending_by_category_incorrect_data() -> None:
