@@ -1,4 +1,6 @@
 from math import nan
+
+import numpy as np
 import pytest
 from typing import Any
 from unittest.mock import Mock, patch, mock_open
@@ -23,7 +25,7 @@ def test_get_greetings(mock_datetime: Any) -> None:
 
 def test_filter_transactions_by_period(sample_transactions):
     result = filter_transactions_by_period(sample_transactions, "2018-01-02 23:59:59")
-    assert result == [
+    d = [
         {
             'Дата операции': '01.01.2018',
             'Дата платежа': '01.01.2018',
@@ -42,15 +44,11 @@ def test_filter_transactions_by_period(sample_transactions):
             'Сумма операции с округлением': 3000.0
         }
     ]
-
-for elem1, elem2 in zip(result[0], d[0]):
-    if type(result[0][elem1]) is float and np.isnan(result[0][elem1]):
-        assert np.isnan(result[0][elem1]) == np.isnan(d[0][elem1])
-    else:
-        assert result[0][elem1] == d[0][elem2]
-
-
-
+    for elem1, elem2 in zip(result[0], d[0]):
+        if type(result[0][elem1]) is float and np.isnan(result[0][elem1]):
+            assert np.isnan(result[0][elem1]) == np.isnan(d[0][elem1])
+        else:
+            assert result[0][elem1] == d[0][elem2]
 
 
 def test_get_cards(sample_transactions: list[dict]) -> None:

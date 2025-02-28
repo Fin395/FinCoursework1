@@ -1,11 +1,10 @@
+from typing import Optional
+
+import pandas as pd
 import datetime
 import logging
-from functools import wraps
-from typing import Optional, Callable, Any
-import json
-import pandas as pd
 
-from config import DATA_DIR, LOGS_FILE_REPORTS, REPORTS_DEFAULT_JSON
+from config import LOGS_FILE_REPORTS, DATA_DIR
 
 logger = logging.getLogger("reports")
 logger.setLevel(logging.DEBUG)
@@ -15,23 +14,6 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def record_to_file(filename: Optional[str] = REPORTS_DEFAULT_JSON) -> Callable:
-    """ Создаем декоратор с параметром для функции-отчета """
-    def decorator(func: Callable) -> Any:
-        """ Создаем вспомогательную функцию для формирования замыкания """
-        @wraps(func)
-        def wrapper(*args: tuple[tuple, ...], **kwargs: dict[str, Any]) -> Any:
-            """ Создаем замыкание """
-            result = func(*args, **kwargs)
-            with open(filename, "w", encoding='utf-8') as file:
-                logger.info(f"Функция {func.__name__} записывает выбранные транзакции в файл {filename}")
-                json.dump(result.to_dict(orient="records"), file, indent=4, ensure_ascii=False)
-            return result
-        return wrapper
-    return decorator
-
-
-@record_to_file()
 def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame | str:
     """ Функция отбирает транзакции по тратам по определенной категории """
     try:
@@ -60,6 +42,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         print(f"Произошла ошибка: {ex}")
 
 
-transactions_data = pd.read_excel(DATA_DIR, na_filter=True)
-spending_by_category(transactions_data, "Цветы", "2019-12-10 23:30:12")
-
+all_operations = pd.read_excel(DATA_DIR, na_filter=True)
+print(spending_by_category(all_operations, "Цветы", "2019-11-11 23:11:11"))
+#main_page_data = json.dumps(main_page_dict, indent=4, ensure_ascii=False)
+#to_dict(orient="records")

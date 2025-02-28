@@ -1,7 +1,7 @@
 import pandas as pd
 
 from config import DATA_DIR
-from src.reports import spending_by_category
+from src.reports import spending_by_category, record_to_file
 from src.services import get_transfers
 from src.views import get_main_page
 
@@ -14,4 +14,6 @@ print(main_page_json_info)
 
 services_info = get_transfers(all_operations_as_list_dict)
 print(services_info)
-print(spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12"))
+
+
+spending_by_category(all_operations, "Цветы", "2019-12-10 23:30:12")
