@@ -1,11 +1,9 @@
 import json
-import re
 import logging
+import re
 from typing import Any
 
-import pandas as pd
-
-from config import LOGS_FILE_SERVICES, DATA_DIR
+from config import LOGS_FILE_SERVICES
 
 logger = logging.getLogger("services")
 logger.setLevel(logging.DEBUG)
@@ -16,7 +14,7 @@ logger.addHandler(file_handler)
 
 
 def get_transfers(list_of_transaction: list[dict]) -> Any:
-    """ Выбираем из списка транзакций переводы физическим лицам """
+    """Выбираем из списка транзакций переводы физическим лицам"""
     filtered_transactions_by_category = []
     filtered_transactions_by_description = []
     pattern = re.compile(r"\b[А-Я][а-я]+\s[А-Я]\.")
@@ -43,9 +41,3 @@ def get_transfers(list_of_transaction: list[dict]) -> Any:
                 filtered_transactions_by_description.append(each_transaction)
 
     return json.dumps(filtered_transactions_by_description, indent=4, ensure_ascii=False)
-
-
-#transactions_data = pd.read_excel(DATA_DIR) # Получаем данные транзакций из operations.xlsx
-#print(transactions_data.to_dict(orient="records"))
-#transactions = transactions_data.to_dict(orient="records") # Преобразуем данные в список словарей
-#print(get_transfers(transactions))

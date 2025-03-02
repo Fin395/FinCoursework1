@@ -1,5 +1,4 @@
 import os
-from fileinput import filename
 
 ROOT_DIR = os.path.dirname(__file__)
 LOGS_FILE_SERVICES = os.path.join(ROOT_DIR, "logs", "services.log")

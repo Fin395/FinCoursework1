@@ -1,13 +1,14 @@
-from datetime import datetime
 import json
 import logging
 import os
-from math import nan
+from datetime import datetime
 from typing import Any
-from config import LOGS_FILE_UTILS, JSON_DIR, DATA_DIR
+
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+
+from config import LOGS_FILE_UTILS
 
 load_dotenv()
 API_KEY_CURRENCY = os.getenv("API_KEY_CURRENCY")
@@ -34,8 +35,6 @@ def get_greetings() -> str:
     else:
         return "Доброй ночи"
 
-#print(get_greetings())
-
 
 def filter_transactions_by_period(transactions: list[dict], date: str) -> list[dict]:
     """Выбираем транзакции с начала месяца, на который выпадает входящая дата, по входящую дату"""
@@ -47,14 +46,12 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> list[d
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
 
     logger.info("Происходит выборка транзакций за указанный период времени")
-    filtered_transactions = df.loc[(df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)].copy()
+    filtered_transactions = df.loc[
+        (df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)
+    ].copy()
     filtered_transactions["Дата операции"] = filtered_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
     return filtered_transactions.to_dict(orient="records")
 
-#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-#all_operations_as_list_dict = all_operations.to_dict(orient="records")
-#print(all_operations_as_list_dict)
-#print(filter_transactions_by_period(all_operations_as_list_dict, "2018-01-02 23:59:59"))
 
 def get_cards(transactions: list[dict]) -> list[dict]:
     """Группирует данные транзакций по номерам карт"""
@@ -70,8 +67,8 @@ def get_cards(transactions: list[dict]) -> list[dict]:
             )
     logger.info("Происходит группировка транзакций по номерам карт")
     transactions_grouped_by_card = transactions_filtered.groupby("Номер карты", as_index=False).agg(
-            {"Сумма платежа": "sum", "Кэшбэк": "sum"}
-        )
+        {"Сумма платежа": "sum", "Кэшбэк": "sum"}
+    )
     logger.info("Происходит переименование позиций")
     transactions_grouped_by_card.rename(
         columns={"Номер карты": "last_digits", "Сумма платежа": "total_spent", "Кэшбэк": "cashback"}, inplace=True
@@ -85,7 +82,7 @@ def get_top_transactions(list_of_transactions: list[dict]) -> list[dict]:
     """Выбираем топ-5 транзакций по сумме платежа"""
     df = pd.DataFrame(list_of_transactions)
     logger.info("Происходит выборка успешных транзакций")
-    df_executed= df.loc[(df["Статус"] == "OK")]
+    df_executed = df.loc[(df["Статус"] == "OK")]
     logger.info("Происходит сортировка транзакций по сумме платежа")
     transactions_sorted_by_amount = df_executed.sort_values("Сумма платежа")
     top_transactions = transactions_sorted_by_amount[
@@ -127,7 +124,6 @@ def get_currencies(path_to_json_file: str) -> Any:
     else:
         return currencies
 
-#print(get_currencies("JSON_DIR"))
 
 def get_stocks(path_to_json_file: str) -> Any:
     """Получаем список наименований акций из JSON-файла"""
@@ -146,11 +142,8 @@ def get_stocks(path_to_json_file: str) -> Any:
         logger.error(f"Произошла ошибка: {ex}")
         print(f"Произошла ошибка: {ex}")
         return []
-
     else:
         return stocks
-
-#print(get_stocks(JSON_DIR))
 
 
 def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
@@ -184,9 +177,6 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
     return formatted_rates_list
 
 
-#print(get_currency_rate(["USD", "EUR"], "2021-12-20 23:59:59"))
-
-
 def get_stock_price(stocks: list[str], date: str) -> list[dict]:
     """Получаем наименования акций из списка"""
     stocks_list = []
@@ -216,6 +206,3 @@ def get_stock_price(stocks: list[str], date: str) -> list[dict]:
             stock_dict = dict(stock=stock_name, price=price)
             formatted_stocks_list.append(stock_dict)
     return formatted_stocks_list
-
-
-#print(get_stock_price(["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"], "2024-12-20 23:59:59"))

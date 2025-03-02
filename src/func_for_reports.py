@@ -1,10 +1,10 @@
-from typing import Optional
-
-import pandas as pd
 import datetime
 import logging
+from typing import Any, Optional
 
-from config import LOGS_FILE_REPORTS, DATA_DIR
+import pandas as pd
+
+from config import LOGS_FILE_REPORTS
 
 logger = logging.getLogger("reports")
 logger.setLevel(logging.DEBUG)
@@ -14,8 +14,8 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame | str:
-    """ Функция отбирает транзакции по тратам по определенной категории """
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> str | None | Any:
+    """Функция отбирает транзакции по тратам по определенной категории"""
     try:
         if date:
             end_of_period = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
@@ -26,21 +26,27 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         start_of_period = end_of_period - pd.DateOffset(months=3)
         transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
         logger.info("Происходит выборка транзакций за 3 месяца")
-        trans_filtered_by_period = transactions.loc[(transactions["Дата операции"] >= start_of_period) & (transactions["Дата операции"] <= end_of_period)]
+        trans_filtered_by_period = transactions.loc[
+            (transactions["Дата операции"] >= start_of_period) & (transactions["Дата операции"] <= end_of_period)
+        ]
+
         if len(trans_filtered_by_period.to_dict(orient="records")) == 0:
             return "В указанном периоде транзакции отсутствуют"
-        logger.info("Отбираем успешные траты")
-        trans_filtered_by_spent = trans_filtered_by_period.loc[(trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")]
-        logger.info(f"Происходит выборка трат по категории: {category}")
-        trans_filtered_by_category = trans_filtered_by_spent.loc[(trans_filtered_by_spent["Категория"] == category)].copy()
-        trans_filtered_by_category["Дата операции"] = trans_filtered_by_category["Дата операции"].dt.strftime("%d.%m.%Y")
 
+        logger.info("Отбираем успешные траты")
+        trans_filtered_by_spent = trans_filtered_by_period.loc[
+            (trans_filtered_by_period["Сумма платежа"] < 0) & (trans_filtered_by_period["Статус"] == "OK")
+        ]
+        logger.info(f"Происходит выборка трат по категории: {category}")
+        trans_filtered_by_category = trans_filtered_by_spent.loc[
+            (trans_filtered_by_spent["Категория"] == category)
+        ].copy()
+        trans_filtered_by_category["Дата операции"] = trans_filtered_by_category["Дата операции"].dt.strftime(
+            "%d.%m.%Y"
+        )
         return trans_filtered_by_category
 
     except Exception as ex:
         logger.error(f"Произошла ошибка: {ex}")
         print(f"Произошла ошибка: {ex}")
-
-
-#all_operations = pd.read_excel(DATA_DIR, na_filter=True)
-#print(spending_by_category(all_operations, "Цветы", "2019-11-11 23:11:11"))
+        return None
