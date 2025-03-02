@@ -46,61 +46,70 @@ def filter_transactions_by_period(transactions: list[dict], date: str) -> list[d
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
 
     logger.info("Происходит выборка транзакций за указанный период времени")
-    filtered_transactions = df.loc[
-        (df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)
-    ].copy()
-    filtered_transactions["Дата операции"] = filtered_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
-    return filtered_transactions.to_dict(orient="records")
+    try:
+        filtered_transactions = df.loc[
+            (df["Дата операции"] >= start_of_period) & (df["Дата операции"] <= end_of_period)
+        ].copy()
+        filtered_transactions["Дата операции"] = filtered_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
+        return filtered_transactions.to_dict(orient="records")
+    except Exception:
+        return []
 
 
 def get_cards(transactions: list[dict]) -> list[dict]:
     """Группирует данные транзакций по номерам карт"""
-    logger.info("Происходит выборка успешных транзакций, связанных с расходами")
-    df = pd.DataFrame(transactions)
-    transactions_filtered = df.loc[(df["Сумма платежа"] < 0) & (df["Статус"] == "OK")]
-    transactions_filtered.loc[transactions_filtered["Кэшбэк"].isna(), "Кэшбэк"] = 0
-    for index, row in transactions_filtered.iterrows():
-        if row["Кэшбэк"] == 0:
-            logger.info("Происходит расчет кэшбэка")
-            transactions_filtered.at[index, "Кэшбэк"] = (
-                transactions_filtered.at[index, "Сумма операции с округлением"] // 100
-            )
-    logger.info("Происходит группировка транзакций по номерам карт")
-    transactions_grouped_by_card = transactions_filtered.groupby("Номер карты", as_index=False).agg(
-        {"Сумма платежа": "sum", "Кэшбэк": "sum"}
-    )
-    logger.info("Происходит переименование позиций")
-    transactions_grouped_by_card.rename(
-        columns={"Номер карты": "last_digits", "Сумма платежа": "total_spent", "Кэшбэк": "cashback"}, inplace=True
-    )
-    transactions_grouped_by_card.fillna(value=0, inplace=True)
-    transactions_grouped_by_card.dropna(inplace=True)
-    return transactions_grouped_by_card.to_dict(orient="records")
+    try:
+        logger.info("Происходит выборка успешных транзакций, связанных с расходами")
+        df = pd.DataFrame(transactions)
+        transactions_filtered = df.loc[(df["Сумма платежа"] < 0) & (df["Статус"] == "OK")]
+        transactions_filtered.loc[transactions_filtered["Кэшбэк"].isna(), "Кэшбэк"] = 0
+        for index, row in transactions_filtered.iterrows():
+            if row["Кэшбэк"] == 0:
+                logger.info("Происходит расчет кэшбэка")
+                transactions_filtered.at[index, "Кэшбэк"] = (
+                    transactions_filtered.at[index, "Сумма операции с округлением"] // 100
+                )
+        logger.info("Происходит группировка транзакций по номерам карт")
+        transactions_grouped_by_card = transactions_filtered.groupby("Номер карты", as_index=False).agg(
+            {"Сумма платежа": "sum", "Кэшбэк": "sum"}
+        )
+        logger.info("Происходит переименование позиций")
+        transactions_grouped_by_card.rename(
+            columns={"Номер карты": "last_digits", "Сумма платежа": "total_spent", "Кэшбэк": "cashback"}, inplace=True
+        )
+        transactions_grouped_by_card.fillna(value=0, inplace=True)
+        transactions_grouped_by_card.dropna(inplace=True)
+        return transactions_grouped_by_card.to_dict(orient="records")
+    except Exception:
+        return []
 
 
 def get_top_transactions(list_of_transactions: list[dict]) -> list[dict]:
     """Выбираем топ-5 транзакций по сумме платежа"""
-    df = pd.DataFrame(list_of_transactions)
-    logger.info("Происходит выборка успешных транзакций")
-    df_executed = df.loc[(df["Статус"] == "OK")]
-    logger.info("Происходит сортировка транзакций по сумме платежа")
-    transactions_sorted_by_amount = df_executed.sort_values("Сумма платежа")
-    top_transactions = transactions_sorted_by_amount[
-        ["Дата операции", "Сумма платежа", "Категория", "Описание"]
-    ].head()
-    top_transactions["Дата операции"] = pd.to_datetime(top_transactions["Дата операции"], dayfirst=True)
-    top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
-    logger.info("Происходит переименование позиций")
-    top_transactions.rename(
-        columns={
-            "Дата операции": "date",
-            "Сумма платежа": "amount",
-            "Категория": "category",
-            "Описание": "description",
-        },
-        inplace=True,
-    )
-    return top_transactions.to_dict(orient="records")
+    try:
+        df = pd.DataFrame(list_of_transactions)
+        logger.info("Происходит выборка успешных транзакций")
+        df_executed = df.loc[(df["Статус"] == "OK")]
+        logger.info("Происходит сортировка транзакций по сумме платежа")
+        transactions_sorted_by_amount = df_executed.sort_values("Сумма платежа")
+        top_transactions = transactions_sorted_by_amount[
+            ["Дата операции", "Сумма платежа", "Категория", "Описание"]
+        ].head()
+        top_transactions["Дата операции"] = pd.to_datetime(top_transactions["Дата операции"], dayfirst=True)
+        top_transactions["Дата операции"] = top_transactions["Дата операции"].dt.strftime("%d.%m.%Y")
+        logger.info("Происходит переименование позиций")
+        top_transactions.rename(
+            columns={
+                "Дата операции": "date",
+                "Сумма платежа": "amount",
+                "Категория": "category",
+                "Описание": "description",
+            },
+            inplace=True,
+        )
+        return top_transactions.to_dict(orient="records")
+    except Exception:
+        return []
 
 
 def get_currencies(path_to_json_file: str) -> Any:
