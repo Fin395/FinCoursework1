@@ -156,7 +156,7 @@ def get_currency_rate(currencies: list[str], date: str) -> list[dict]:
 
     for curr in currencies:
         url = f"https://api.apilayer.com/exchangerates_data/{required_date}?symbols=rub&base={curr}"
-        payload = {}
+        payload: dict = {}
         headers = {"apikey": API_KEY_CURRENCY}
         logger.info("Получаем данные о курсе валюты")
         response = requests.get(url, headers=headers, data=payload)
